@@ -1,0 +1,45 @@
+# Maintainer: Paul Hentschel <hpmachining@charter.net>
+
+_realname=mpir
+pkgbase=mingw-w64-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+pkgver=3.0.0
+pkgrel=1
+pkgdesc="A highly optimised library for bignum arithmetic forked from the GMP bignum library."
+arch=('any')
+url="http://mpir.org"
+license=('LPGL3')
+source=("http://mpir.org/${_realname}-${pkgver}.tar.bz2")
+sha256sums=('52f63459cf3f9478859de29e00357f004050ead70b45913f2c2269d9708675bb')
+depends=()
+makedepends=(yasm)
+
+prepare() {
+  cd $srcdir/${_realname}-${pkgver}
+}
+
+build() {
+  cd "$srcdir"/${_realname}-${pkgver}
+  [[ -d "${srcdir}"/build-${CARCH} ]] && rm -rf "${srcdir}"/build-${CARCH}
+  mkdir -p "${srcdir}"/build-${CARCH} && cd "${srcdir}"/build-${CARCH}
+  ../${_realname}-${pkgver}/configure \
+    --prefix=${MINGW_PREFIX} \
+    --build=${MINGW_CHOST} \
+    --host=${MINGW_CHOST} \
+    --target=${MINGW_CHOST} \
+    --enable-cxx \
+    --disable-static \
+    --enable-shared
+
+  make
+}
+
+check() {
+  cd "${srcdir}"/build-${CARCH}
+  make check
+}
+
+package() {
+  cd "${srcdir}"/build-${CARCH}
+  make install DESTDIR="${pkgdir}"
+}
